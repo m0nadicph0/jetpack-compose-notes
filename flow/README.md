@@ -6,7 +6,7 @@ This repository contains a collection of exercises designed to gain basic unders
 
 | Exercise | Description | Focus |
 |---|---|---|
-| (PUZZLER-001)[PUZZLER-001.md] | Simple Timer with Navigation | Observing Flow values, triggering navigation |
+| [PUZZLER-001](PUZZLER-001.md) | Simple Timer with Navigation | Observing Flow values, triggering navigation |
 | PUZZLER-002 | Download Progress | Transforming Flow values, updating UI based on emissions |
 | PUZZLER-003 | Network Request with Loading State | Handling different emission states (loading, success, error) |
 | PUZZLER-004 | User Input Validation | Combining Flow with composable state for validation |
