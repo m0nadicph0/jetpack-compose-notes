@@ -45,5 +45,3 @@ This exercise challenges you to implement a screen that fetches data from an API
 
 * Implement a retry mechanism for failed network requests.
 * Display additional information like loading progress percentage or remaining time.
-
-By completing this exercise, you'll gain practical experience with managing asynchronous operations and handling different states in your Jetpack Compose applications using Flows.
