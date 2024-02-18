@@ -42,5 +42,60 @@ This exercise demonstrates how to utilize Flows to manage asynchronous operation
 
 ## Implementation
 
+### Create a View Model
 
+```kotlin
+class DownloadViewModel: ViewModel() {
+    private val _progress = MutableStateFlow<Int>(0)
+    val progress: Flow<Int> = _progress
+
+
+    fun startDownload() {
+        viewModelScope.launch {
+            for (i in 1..10) {
+                delay(1000)
+                _progress.emit(i*10)
+            }
+        }
+    }
+
+    fun reset() {
+        viewModelScope.launch {
+            _progress.emit(0)
+        }
+    }
+}
+```
+### Create the Download Screen
+
+```kotlin
+@Composable
+fun DownloadScreen(controller: NavHostController, vm: DownloadViewModel) {
+    val progress = vm.progress.collectAsState(initial = 0)
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
+    ) {
+        when(progress.value) {
+            0 -> OutlinedButton(onClick = { vm.startDownload()}) { Text("Download File") }
+            100 -> {
+                Text("Download Complete")
+                OutlinedButton(onClick = { vm.reset() }) {Text("Restart")}
+            }
+            else -> {
+                Text("Download ${progress.value}% complete")
+                LinearProgressIndicator(
+                    progress = (progress.value *1f)/100,
+                    modifier = Modifier.padding(top = 20.dp).height(10.dp)
+                )
+            }
+        }
+
+    }
+}
+```
 
