@@ -45,3 +45,101 @@ This exercise challenges you to implement a screen that fetches data from an API
 
 * Implement a retry mechanism for failed network requests.
 * Display additional information like loading progress percentage or remaining time.
+
+# Implementation
+
+## Add Data state class
+
+```kotlin
+sealed class DataState {
+    data object Initial : DataState()
+    data object Loading : DataState()
+    data class Success(val data: String) : DataState()
+    data class Error(val error: String) : DataState()
+}
+```
+
+## Add Repository
+
+```kotlin
+interface DataRepository {
+    suspend fun getData(): String
+}
+
+class HttpBinRepository: DataRepository {
+    override suspend fun getData(): String {
+        delay(5000) // Simulate network delay
+        return "Fetched data!"
+    }
+
+}
+```
+
+## Add View Model
+
+```kotlin
+class NetworkRequestViewModel(
+    private val repository: DataRepository
+) : ViewModel() {
+    private val _dataState = MutableStateFlow<DataState>(DataState.Initial)
+    val dataState: Flow<DataState> = _dataState
+
+    fun fetch() {
+        viewModelScope.launch {
+            try {
+                _dataState.emit(DataState.Loading)
+                val data = repository.getData()
+                _dataState.emit(DataState.Success(data))
+            } catch (e: Exception) {
+                _dataState.emit(DataState.Error(e.message ?: "An error occurred"))
+            }
+        }
+    }
+
+    fun reset() {
+        viewModelScope.launch {
+            _dataState.emit(DataState.Initial)
+        }
+    }
+}
+```
+
+## Add Screen
+
+```kotlin
+@Composable
+fun NetworkRequestScreen(controller: NavHostController, vm: NetworkRequestViewModel) {
+    val dataState = vm.dataState.collectAsState(initial = DataState.Initial)
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
+    ) {
+
+        when(dataState.value) {
+            DataState.Initial -> {
+                Button(onClick = {
+                    vm.fetch()
+                }) {
+                    Text("Fetch Data")
+                }
+            }
+            DataState.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            }
+            is DataState.Success -> {
+                Text("Data: ${(dataState.value as DataState.Success).data}")
+                Button(onClick = { vm.reset() }) {
+                    Text("Reset")
+                }
+            }
+            is DataState.Error -> {
+                Text("Error: ${(dataState.value as DataState.Error).error}")
+            }
+        }
+    }
+}
+```
+
