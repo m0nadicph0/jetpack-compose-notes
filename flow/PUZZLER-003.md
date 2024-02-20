@@ -46,7 +46,7 @@ This exercise challenges you to implement a screen that fetches data from an API
 * Implement a retry mechanism for failed network requests.
 * Display additional information like loading progress percentage or remaining time.
 
-# Implementation
+# Implementation (Simulate Network Delay)
 
 ## Add Data state class
 
@@ -142,4 +142,89 @@ fun NetworkRequestScreen(controller: NavHostController, vm: NetworkRequestViewMo
     }
 }
 ```
+
+# Implementation (Actual Network Request)
+
+## Add required dependencies
+
+`app/build.gradle.kts`
+
+```kotlin
+implementation("com.squareup.retrofit2:retrofit:2.9.0")
+implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+```
+
+## Add network permission
+
+`app/src/main/AndroidManifest.xml`
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools">
+
+     <uses-permission android:name="android.permission.INTERNET"/>
+
+     <application>
+      ...
+     </application>
+```
+
+## Add API client
+
+`data/network/ApiClient.kt`
+
+```kotlin
+object ApiClient {
+    private const val BASE_URL = "https://httpbin.org/"
+
+    private val client = OkHttpClient.Builder().build()
+
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val apiService: ApiService by lazy {
+        retrofit.create(ApiService::class.java)
+    }
+}
+```
+
+## Add API service
+
+`data/service/ApiService.kt`
+
+```kotlin
+interface ApiService {
+
+    @GET("uuid")
+    suspend fun getUuid(): UuidResponse
+}
+```
+
+## Add Response class
+
+`data/domain/UuidResponse.kt`
+
+```kotlin
+data class UuidResponse(val uuid: String)
+```
+
+## Now modify the Repository
+
+`data/repository/DataRepository.kt`
+
+```kotlin
+class HttpBinRepository: DataRepository {
+    override suspend fun getData(): String {
+        val response = ApiClient.apiService.getUuid()
+        return response.uuid
+    }
+
+}
+```
+
+
+
 
